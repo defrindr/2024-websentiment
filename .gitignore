@@ -1,0 +1,7 @@
+myvenv
+__pycache__/
+src/flask_session
+src/sentiment
+dataset/
+.DS_Store
+mover
