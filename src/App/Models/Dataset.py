@@ -10,31 +10,29 @@ from glob import glob
 from flask import current_app as app
 
 
-class News(Base, db.Model):
-    __tablename__ = 'news'
+class Dataset(Base, db.Model):
+    __tablename__ = 'datasets'
 
     id = Column(Integer, primary_key=True)
     kategoriId = Column(Integer, ForeignKey('categories.id'))
-    judul = Column(String(255))
-    isi = Column(Text())
+    Stem = Column(String(255))
     flag = Column(Integer, default=1)
 
-    kategori = db.relationship('Category', backref='news')
+    kategori = db.relationship('Category', backref='dataset')
     pass
 
 
 def ActiveQuery():
-    return News.query.join(Category).filter(News.flag == 1, Category.flag == 1)
+    return Dataset.query.join(Category).filter(Dataset.flag == 1, Category.flag == 1)
 
 
 def fetchOne(id):
-    return News.query.join(Category).filter(News.flag == 1, Category.flag == 1, News.id == id).first()
+    return Dataset.query.join(Category).filter(Dataset.flag == 1, Category.flag == 1, Dataset.id == id).first()
 
 
 def assign(form):
-    return News(
-        judul=form['judul'],
-        isi=form['isi'],
+    return Dataset(
+        Stem=form['Stem'],
         kategoriId=form['kategoriId'],
         flag=1
     )

@@ -8,7 +8,8 @@ import os
 from glob import glob
 from flask import current_app as app
 
-class Category(Base,db.Model):
+
+class Category(Base, db.Model):
     __tablename__ = 'categories'
 
     id = Column(Integer, primary_key=True)
@@ -16,3 +17,24 @@ class Category(Base,db.Model):
     flag = Column(Integer, default=1)
 
     pass
+
+
+def ActiveQuery():
+    return Category.query.filter_by(flag=1)
+
+
+def fetchOne(id):
+    return Category.query.filter(Category.flag == 1, Category.id == id).first()
+
+
+def assign(form):
+    return Category(
+        name=form['name'],
+        flag=1
+    )
+
+
+def modify(model, form):
+    for key, val in form.items():
+        if hasattr(model, key):
+            setattr(model, key, val)

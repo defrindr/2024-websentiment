@@ -7,6 +7,7 @@ from App.Extensions.routes import Routes
 from flask_wtf import CSRFProtect
 from App.Core.database import db
 from App.Core.session import Session
+from App.Core.sentiment import app_sentiment
 
 app = Flask(__name__, static_folder="./Static/")
 csrf = CSRFProtect(app)
@@ -17,6 +18,7 @@ def create_app(app, config_class=Config):
     app.secret_key = app.config['SECRET_KEY']
     Session(app)
     db.init_app(app)
+    app_sentiment.init_app(app)
 
     # Initialize Flask extensions here
     # Register blueprints here
