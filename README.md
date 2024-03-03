@@ -1,22 +1,11 @@
-# UNMUH PPF (PERSONAL PRESENCE WITH FACE RECOGNITION)
-
-Presence App build with Flask.
-
-## Feature
-
-- Managemen User
-- Training Data User
-- Managemen Kelas
-- Managemen Matkul
-- Managemen Jadwal
-- Presensi
+# Website Sentiment Analisis Judul Berita
 
 ## Installation
 
 1. Clone this project
 
 ```sh
-git clone https://github.com/defrindr/2023-face-recognition-collage-presence.git
+git clone https://github.com/defrindr/2024-websentiment.git
 ```
 
 2. Create Virtual Environment
@@ -45,6 +34,11 @@ pip install -r requirements.txt
 
 4. Atur database, konfigurasi ada di .flaskenv
 
+5. Jalankan Migration
+
+```sh
+alembic upgrade head
+```
 
 5. Running project
 
