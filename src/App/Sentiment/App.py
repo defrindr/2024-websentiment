@@ -1,52 +1,121 @@
-import pandas as pd  # untuk pemrosesan file csv
-import string  # untuk melakukan tokenisasi
-import numpy as np  # untuk memudahkan perhitungan pada array
-import re  # untuk membantu proses tokenisasi
+from App.Core.database import db
+from App.Core.config import Config
+from sqlalchemy import create_engine
+import nltk
+import pandas as pd
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import cross_val_predict
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import numpy as np
+import string
 import os
+import re
+import csv
+import time
 
+from sklearn.model_selection import train_test_split
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import normalize
-from sklearn.naive_bayes import CategoricalNB, MultinomialNB
-from sklearn.metrics import accuracy_score, classification_report
-import App.Models.Dataset as DatasetInstance
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+from nltk.tokenize import word_tokenize
 
-from sqlalchemy import create_engine
-from App.Core.config import Config
-from App.Core.database import db
+path = '/resources'
+
 
 # Connect to the database
 # Replace with your connection string
 
 sFactory = StemmerFactory()
+sWordFactory = StopWordRemoverFactory()
 stemmer = sFactory.create_stemmer()
+stopword = sWordFactory.create_stop_word_remover()
 
-path = os.getcwd() + '/App/Sentiment'
-
-file_stopword = open(path+"/resources/stopword.txt", "r")  # r = read
-stopwords = file_stopword.read().split('\n')
-file_stopword.close()
+base = os.getcwd() + '/App/Sentiment' + path
 
 
 class Sentiment():
-    tfidf = None
-    naiveBaseClassifier = None
     app = None
     engine = None
+    df = None
+    X_train = None
+    X_test = None
+    y_train = None
+    y_test = None
+    stopwords = None
+    sastrawiStopword = None
+    stemmer = None
+    classifier = None
+    max_features = None
+    tfidf = None
 
-    def init_app(self, app):
+    def init_app(self, app, max_features=10000):
         self.app = app
         with app.app_context():
             self.engine = db.engine
-            self.training()
+        self.max_features = max_features
+        self.df = pd.read_csv(f'{base}/training.csv')
 
-    def cleanupText(self, teks):
+        self.load_library()
+        self.generate_test()
+        self.load_stopwords()
+
+        self.X_train['Judul'] = self.X_train.Judul.apply(self.preprocessing)
+        self.init_naive()
+        return self
+
+    def init_naive(self):
+        # hitung idf
+        self.tfidf = TfidfVectorizer(
+            max_features=self.max_features,
+            smooth_idf=False,
+            ngram_range=(1, 1),
+            lowercase=True,
+            analyzer='word'
+        )
+
+        X_train_tfidf = self.tfidf.fit_transform(self.X_train['Judul'])
+        X_test_tfidf = self.tfidf.transform(self.X_test['Judul'])
+
+        # implementasi naive bayes
+        self.classifier = MultinomialNB(alpha=0.7, fit_prior=False)
+        self.classifier.fit(X_train_tfidf, self.y_train)
+        y_pred = self.classifier.predict(X_test_tfidf)
+        akurasi = accuracy_score(self.y_test, y_pred)
+        print('Akurasi:\n', akurasi)
+
+    def load_library(self):
+        stopwordFactory = StopWordRemoverFactory()
+        self.sastrawiStopword = stopwordFactory.create_stop_word_remover()
+
+        sFactory = StemmerFactory()
+        self.stemmer = sFactory.create_stemmer()
+
+    def generate_test(self):
+        X = self.df[['Judul']]
+        y = self.df[['Kategori']]
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            X, y, test_size=.25, random_state=42)
+
+    def load_stopwords(self):
+        file_stopword = open(f"{base}/stopword.txt", "r")  # r = read
+        self.stopwords = file_stopword.read().split('\n')
+        file_stopword.close()
+
+    def bersihkanDataset(self, teks):
+        # casefolding
         # menghapus tab
         # menghapus baris baru
         # menghapus backslash
         teks = teks\
+            .lower()\
             .replace('\\t', " ")\
             .replace('\\n', " ")\
             .replace('\\', "")
@@ -60,72 +129,81 @@ class Sentiment():
         # menghapus dobel spasi
         teks = re.sub('\s+', ' ', teks)
         # menghapus karakter tunggal
-        teks = re.sub(r"\b[a-zA-Z]\b", "", teks)
+        teks = re.sub(r"\b[a-z]\b", "", teks)
         # menghapus angka
         teks = re.sub(r"[\d]+", "", teks)
         return teks
 
-    def filtering(self, token):
-        clean = [kata for kata in token if kata not in stopwords]
-        return clean
+    def stem(self, kalimat):
+        stop = self.sastrawiStopword.remove(kalimat)
+        tokens = nltk.tokenize.word_tokenize(stop)
+        clean = [kata for kata in tokens if kata not in self.stopwords]
+        kalimat = ' '.join(clean)
+        return self.stemmer.stem(kalimat)
 
-    def stem(self, token):
-        token = ' '.join(token)
-        return stemmer.stem(token)
+    def preprocessing(self, kalimat):
+        kalimat = self.bersihkanDataset(kalimat)
+        return self.stem(kalimat)
 
-    def training(self):
-        # dataFrame = pd.read_csv(path + '/resources/clean_dataset.csv')
-        dataFrame = pd.read_sql(
-            """
-                SELECT datasets.id, datasets.kategoriId as Kategori, datasets.Stem, datasets.flag 
-                FROM datasets 
-                WHERE datasets.flag = 1
-                """,
-            con=self.engine.raw_connection()
-        )
-        max_features = 10000
+    def predict(self, source_file, result_path):
+        mydict = []
+        fields = ['Kategori', 'Judul', 'Isi', 'Filtering',
+                  'Hapus StopWord',
+                  'Tokenisasi',
+                  'Stem',
+                  'TFIDF', 'Prediksi', 'Hasil']
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            dataFrame['Stem'],
-            dataFrame['Kategori'],
-            test_size=.3,
-            random_state=50
-        )
+        with open(source_file, mode='r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            total_data = 0
+            total_benar = 0
+            accuracy = 0
+            result_name = 'result_' + str(time.time()) + '.csv'
+            result_file = result_path + result_name
 
-        # hitung idf
-        self.tfidf = TfidfVectorizer(
-            max_features=max_features,
-            smooth_idf=False,
-            ngram_range=(1, 3)
-        )
+            for row in csv_reader:
 
-        X_train_tfidf = self.tfidf.fit_transform(X_train)
-        X_test_tfidf = self.tfidf.transform(X_test)
+                filtering_teks = self.bersihkanDataset(row['Judul'])
+                remove_stopword_teks = self.sastrawiStopword.remove(
+                    filtering_teks)
+                tokens = nltk.tokenize.word_tokenize(remove_stopword_teks)
+                clean = [kata for kata in tokens if kata not in self.stopwords]
+                kalimat = ' '.join(clean)
+                stem_teks = self.stemmer.stem(kalimat)
 
-        # implementasi naive bayes
-        self.naiveBaseClassifier = MultinomialNB()
-        self.naiveBaseClassifier.fit(X_train_tfidf, y_train)
+                new_text_tfidf = self.tfidf.transform([stem_teks])
+                predicted_category = self.classifier.predict(
+                    new_text_tfidf
+                )[0]
 
-        y_pred = self.naiveBaseClassifier.predict(X_test_tfidf)
+                mydict.append({
+                    'Kategori': row['Kategori'],
+                    'Judul': row['Judul'],
+                    'Isi': row['Isi'],
+                    'Filtering': filtering_teks,
+                    'Hapus StopWord': remove_stopword_teks,
+                    'Tokenisasi': ','.join(tokens),
+                    'Stem': stem_teks,
+                    'TFIDF': new_text_tfidf,
+                    'Prediksi': predicted_category,
+                    'Hasil': predicted_category == row['Kategori'],
+                })
+                if predicted_category == row['Kategori']:
+                    total_benar += 1
+                total_data += 1
+            accuracy = int((total_benar / total_data) * 100)
 
-        akurasi = accuracy_score(y_test, y_pred)
-        print('Akurasi:\n', akurasi)
+        with open(result_file, 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
 
-        classification_rep = classification_report(y_test, y_pred)
-        print('Laporan Klasifikasi:\n', classification_rep)
-    pass
-
-    def predict(self, teks):
-        teks = self.cleanupText(teks)
-        token = teks.split(' ')
-        token = self.filtering(token)
-        teks = self.stem(token)
-
-        new_text_tfidf = self.tfidf.transform([teks])
-        predicted_category = self.naiveBaseClassifier.predict(
-            new_text_tfidf
-        )[0]
-        return predicted_category
+            writer.writeheader()
+            writer.writerows(mydict)
+        return {
+            'total_data': total_data,
+            'total_benar': total_benar,
+            'accuracy': accuracy,
+            'result_file': result_name,
+        }
     pass
 
 

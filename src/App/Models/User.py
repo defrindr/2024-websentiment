@@ -13,7 +13,7 @@ class Role(enum.Enum):
     pass
 
 
-class User(Base, db.Model):
+class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
