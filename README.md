@@ -11,13 +11,13 @@ git clone https://github.com/defrindr/2024-websentiment.git
 2. Create Virtual Environment
 
 ```sh
-python3 -m venv myvenv
+python3 -m venv .venv
 ```
 
 3. Activate Virtual Environment
 
 ```sh
-source myvenv/bin/activate
+source .venv/bin/activate
 ```
 
 3. Go to directory src
