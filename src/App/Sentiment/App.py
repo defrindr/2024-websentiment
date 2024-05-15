@@ -30,9 +30,6 @@ from nltk.tokenize import word_tokenize
 path = '/resources'
 
 
-# Connect to the database
-# Replace with your connection string
-
 sFactory = StemmerFactory()
 sWordFactory = StopWordRemoverFactory()
 stemmer = sFactory.create_stemmer()
@@ -70,9 +67,10 @@ class Sentiment():
         self.X_train['Judul'] = self.X_train.Judul.apply(self.preprocessing)
         self.init_naive()
         return self
+# TF-IDF
 
     def init_naive(self):
-        # hitung idf
+
         self.tfidf = TfidfVectorizer(
             max_features=self.max_features,
             smooth_idf=False,
@@ -84,7 +82,7 @@ class Sentiment():
         X_train_tfidf = self.tfidf.fit_transform(self.X_train['Judul'])
         X_test_tfidf = self.tfidf.transform(self.X_test['Judul'])
 
-        # implementasi naive bayes
+        # Implementasi Naive Bayes
         self.classifier = MultinomialNB(alpha=0.7, fit_prior=False)
         self.classifier.fit(X_train_tfidf, self.y_train)
         y_pred = self.classifier.predict(X_test_tfidf)
@@ -97,12 +95,13 @@ class Sentiment():
 
         sFactory = StemmerFactory()
         self.stemmer = sFactory.create_stemmer()
+#
 
     def generate_test(self):
         X = self.df[['Judul']]
         y = self.df[['Kategori']]
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            X, y, test_size=.25, random_state=42)
+            X, y, test_size=.70, random_state=42)
 
     def load_stopwords(self):
         file_stopword = open(f"{base}/stopword.txt", "r")  # r = read
@@ -111,26 +110,22 @@ class Sentiment():
 
     def bersihkanDataset(self, teks):
         # casefolding
-        # menghapus tab
-        # menghapus baris baru
-        # menghapus backslash
         teks = teks\
             .lower()\
             .replace('\\t', " ")\
             .replace('\\n', " ")\
             .replace('\\', "")
 
-        # Menghapus karakter khusus
         teks = teks.encode('ascii', 'replace').decode('ascii')
-        # menghapus tanda baca
+
         teks = teks.translate(str.maketrans("", "", string.punctuation))
-        # menghapus spasi di awal dan akhir kalimat
+
         teks = teks.strip()
-        # menghapus dobel spasi
+
         teks = re.sub('\s+', ' ', teks)
-        # menghapus karakter tunggal
+
         teks = re.sub(r"\b[a-z]\b", "", teks)
-        # menghapus angka
+
         teks = re.sub(r"[\d]+", "", teks)
         return teks
 
@@ -147,14 +142,16 @@ class Sentiment():
 
     def predict(self, source_file, result_path):
         mydict = []
-        fields = ['Kategori', 'Judul', 'Isi', 'Filtering',
+        fields = ['Kategori', 'Judul', 'Isi', 'Casefolding', 'Filtering',
                   'Hapus StopWord',
                   'Tokenisasi',
                   'Stem',
                   'TFIDF', 'Prediksi', 'Hasil']
 
-        with open(source_file, mode='r') as csv_file:
+        with open(source_file, mode='r', encoding="utf8") as csv_file:
             csv_reader = csv.DictReader(csv_file)
+            # print(csv_reader)
+            # exit()
             total_data = 0
             total_benar = 0
             accuracy = 0
@@ -180,6 +177,7 @@ class Sentiment():
                     'Kategori': row['Kategori'],
                     'Judul': row['Judul'],
                     'Isi': row['Isi'],
+                    'Casefolding': row['Judul'].lower(),
                     'Filtering': filtering_teks,
                     'Hapus StopWord': remove_stopword_teks,
                     'Tokenisasi': ','.join(tokens),
@@ -193,7 +191,7 @@ class Sentiment():
                 total_data += 1
             accuracy = int((total_benar / total_data) * 100)
 
-        with open(result_file, 'w', newline='') as file:
+        with open(result_file, 'w', newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=fields)
 
             writer.writeheader()

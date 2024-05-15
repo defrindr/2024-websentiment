@@ -8,6 +8,7 @@ import os
 from glob import glob
 from flask import current_app as app
 
+
 class Role(enum.Enum):
     ADMIN = "ADMIN"
     pass
@@ -34,8 +35,10 @@ class User(Base, db.Model):
 
     pass
 
+
 def _hashPassword(plaintext):
     return md5(str(plaintext).encode()).hexdigest()
+
 
 def _fetchByUsername(username):
     return User.query.filter(User.username == username, User.flag == 1).first()
