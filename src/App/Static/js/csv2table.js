@@ -9,6 +9,7 @@ class Csv2Table {
   _elementId = null;
   _source = null;
   _withHeader = true;
+  _filter = "";
   _tableClass = "table table-hover table-striped";
   _containerClass = "table-responsive";
 
@@ -39,7 +40,6 @@ class Csv2Table {
     if (params.containerClass !== undefined) {
       this.__containerClass = params.containerClass;
     }
-
     this._elementId = document.getElementById(params.id);
     this._source = params.source;
 
@@ -58,6 +58,10 @@ class Csv2Table {
       this._source = params.source;
       this._build();
     }
+  }
+
+  filter(_filter) {
+    this._filter = _filter;
   }
 
   /**
@@ -91,10 +95,11 @@ class Csv2Table {
 
   /**
    * Generate HTML Element
-   * @param {*} sources 
+   * @param {*} sources
    * @returns string of html element
    */
-  _makeHtml(sources) {
+  _makeHtml(realSources) {
+    let sources = Array.from(realSources);
     let header = "";
     if (this._withHeader) {
       let titles = sources.shift();
@@ -114,6 +119,10 @@ class Csv2Table {
     for (let rowIndex = 0; rowIndex < sources.length; rowIndex++) {
       let columns = [];
       let source = sources[rowIndex];
+
+      if (this._filter) {
+        if (source[10] !== this._filter) continue;
+      }
 
       for (let columnIndex = 0; columnIndex < source.length; columnIndex++) {
         let contentTd = source[columnIndex];

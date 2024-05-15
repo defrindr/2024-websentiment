@@ -17,7 +17,7 @@ ALLOWED_EXTENSIONS = {'csv'}
 
 
 def index():
-    title = "Daftar Uploader"
+    title = "Klasifikasi"
 
     headers = ['No', 'Nama', 'Akurasi', 'Total Data', 'Total Benar', 'Aksi']
 
@@ -166,8 +166,7 @@ def update(id):
 
 
 def destroy(id):
-    model = UploaderInstance.fetchOne(id)
-    model.flag = 0
+    UploaderInstance.destroy(id)
     db.session.commit()
     flash('Data berhasil dihapus', 'info')
     return redirect(url_for(f'{module}.index'))

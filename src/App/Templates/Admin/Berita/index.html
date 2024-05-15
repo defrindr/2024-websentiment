@@ -71,20 +71,15 @@
             {% for row in pagination.items %}
             <tr>
               <td> {{ loop.index + (pagination.page * per_page - per_page) }} </td>
-              <td> {{ row.nama }} </td>
-              <td> {{ row.accuracy }} </td>
-              <td> {{ row.total_data }} </td>
-              <td> {{ row.total_benar }} </td>
+              <td>{{ row.kategori }}</td>
+              <td>{{ row.judul }}</td>
+              <td>{{ row.prediksi }}</td>
+              <td>{{ row.hasil }}</td>
               <td>
-                <button class="mr-1 mb-1 btn btn-sm btn-warning btn-open-modal" data-url="{{row.getPathFile()}}"
-                  data-title="Sumber untuk {{row.nama}}">
-                  <i class="fa fa-file"></i> Sumber
+                <button class="btn mr-1 mb-1 btn-sm btn-warning btn-open-modal" data-view="{{row.data}}">
+                  <i class="fa fa-eye"></i> Detail
                 </button>
-                <button class="mr-1 mb-1 btn btn-sm btn-primary btn-open-modal" data-with-filter="true"
-                  data-url="{{row.getPathResult()}}" data-title="Hasil untuk {{row.nama}}">
-                  <i class="fa fa-file"></i> Hasil
-                </button>
-                <form action="{{ url_for('admin.uploader.destroy', id=row.id) }}" method="post" class="d-inline"
+                <form action="{{ url_for(module+'.destroy', id=row.id) }}" method="post" class="d-inline"
                   onsubmit="return confirm('Are u sure to running this action ?')">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <button class="mr-1 mb-1 btn btn-sm btn-danger">
@@ -143,13 +138,6 @@
         </button>
       </div>
       <div class="modal-body">
-        <a id="dokumen_link" href="" class="btn btn-primary mb-3" target="_blank">Unduh Dokumen</a>
-
-        <select name="" id="select-by-hasil" class="form-control">
-          <option value="">Semua</option>
-          <option value="True">True</option>
-          <option value="False">False</option>
-        </select>
         <div id="cvsTable"></div>
       </div>
       <div class="modal-footer">
@@ -167,36 +155,23 @@
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="{{url_for('static', filename='js/csv2table.js')}}"></script>
 <script>
-
-  let csvTable = new Csv2Table({
-    id: 'cvsTable',
-    source: ''
-  })
-
-
   $('.btn-open-modal').on('click', (event) => {
     event.preventDefault();
     $('#exampleModal').modal('show')
     let elementEvent = event.target;
-    let source = elementEvent.getAttribute('data-url');
-    let title = elementEvent.getAttribute('data-title');
+    let view = elementEvent.getAttribute('data-view');
 
-    let withFilter = elementEvent.getAttribute('data-with-filter');
-    let filter = document.querySelector('#select-by-hasil');
-    filter.addEventListener('change', function (evt) {
-      csvTable.filter(evt.target.value)
-      csvTable.update({ source })
-    })
-    if (withFilter) {
-      filter.setAttribute('style', 'display: block')
-    } else {
-      filter.setAttribute('style', 'display: none')
-    }
+    let data = JSON.parse(view)
 
-    $('#dokumen_link').attr('href', source)
-    $('#exampleModalLabel').text(title)
+    let container = document.querySelector('#cvsTable');
 
-    csvTable.update({ source })
+    let content = '';
+
+    Object.entries(data).forEach(element => {
+      content += `<tr><td>${element[0]}</td><td>${element[1]}</td></tr>`;
+    });
+
+    container.innerHTML = `<table class='table table-hover table-striped'>${content}</table>`
 
   });
 </script>

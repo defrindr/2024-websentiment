@@ -204,5 +204,32 @@ class Sentiment():
         }
     pass
 
+    def singlePredict(self, judul, Kategori):
+        filtering_teks = self.bersihkanDataset(judul)
+        remove_stopword_teks = self.sastrawiStopword.remove(
+            filtering_teks)
+        tokens = nltk.tokenize.word_tokenize(remove_stopword_teks)
+        clean = [kata for kata in tokens if kata not in self.stopwords]
+        kalimat = ' '.join(clean)
+        stem_teks = self.stemmer.stem(kalimat)
+        new_text_tfidf = self.tfidf.transform([stem_teks])
+        predicted_category = self.classifier.predict(
+            new_text_tfidf
+        )[0]
+
+        return {
+            'Kategori': Kategori,
+            'Judul': judul,
+            'Casefolding': judul.lower(),
+            'Filtering': filtering_teks,
+            'Hapus StopWord': remove_stopword_teks,
+            'Tokenisasi': ','.join(tokens),
+            'Stem': stem_teks,
+            # 'TFIDF': json.dumps(new_text_tfidf),
+            'Prediksi': predicted_category,
+            'Hasil': predicted_category == Kategori,
+        }
+    pass
+
 
 pass

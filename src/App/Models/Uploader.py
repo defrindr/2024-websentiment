@@ -41,6 +41,10 @@ def fetchOne(id):
     return Uploader.query.filter(Uploader.id == id).first()
 
 
+def destroy(id):
+    return Uploader.query.filter(Uploader.id == id).delete()
+
+
 def assign(form):
     return Uploader(
         nama=form['name'],
