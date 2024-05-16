@@ -221,16 +221,16 @@ class Sentiment():
     pass
 
     def singlePredict(self, judul, isi, Kategori):
-        filtering_teks = self.bersihkanDataset(isi)
-        remove_stopword_teks = self.sastrawiStopword.remove(
-            filtering_teks)
-        tokens = nltk.tokenize.word_tokenize(remove_stopword_teks)
-        clean = [kata for kata in tokens if kata not in self.stopwords]
-        kalimat = ' '.join(clean)
-        stem_teks = self.stemmer.stem(kalimat)
-        new_text_tfidf = self.tfidf.transform([stem_teks])
+        filtering_teks_isi = self.bersihkanDataset(isi)
+        remove_stopword_teks_isi = self.sastrawiStopword.remove(
+            filtering_teks_isi)
+        tokens_isi = nltk.tokenize.word_tokenize(remove_stopword_teks_isi)
+        clean_isi = [kata for kata in tokens_isi if kata not in self.stopwords]
+        kalimat_isi = ' '.join(clean_isi)
+        stem_teks_isi = self.stemmer.stem(kalimat_isi)
+        new_text_tfidf_isi = self.tfidf.transform([stem_teks_isi])
         predicted_category_isi = self.classifier.predict(
-            new_text_tfidf
+            new_text_tfidf_isi
         )[0]
 
         filtering_teks = self.bersihkanDataset(judul)
@@ -251,14 +251,19 @@ class Sentiment():
         return {
             'Kategori': Kategori,
             'Judul': judul,
-            'Isi': isi,
             'Casefolding': judul.lower(),
             'Filtering': filtering_teks,
             'Hapus StopWord': remove_stopword_teks,
             'Tokenisasi': ','.join(tokens),
             'Stem': stem_teks,
-            # 'TFIDF': json.dumps(new_text_tfidf),
             'Prediksi': predicted_category,
+            'Isi': isi,
+            'Casefolding (Isi)': isi.lower(),
+            'Filtering (Isi)': filtering_teks_isi,
+            'HapusStopWord (Isi)': remove_stopword_teks_isi,
+            'Tokenisasi (Isi)': ','.join(tokens_isi),
+            'Stem (Isi)': stem_teks_isi,
+            'Prediksi (Isi)': predicted_category_isi,
             'Hasil': predicted_category == Kategori,
         }
     pass
