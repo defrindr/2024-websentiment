@@ -37,7 +37,16 @@
                         <div class="card-body">
                             <h3 class="text-white">{{ total_salah }}</h3>
                         </div>
-                    </div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="chart-truefalse"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -53,6 +62,10 @@
 
 <script>
     const ctx = document.getElementById('myChart');
+    const ctx2 = document.getElementById('chart-truefalse');
+
+    let benar = {{ total_salah }};
+    let salah = {{ total_benar }};
 
     new Chart(ctx, {
         type: 'doughnut',
@@ -63,13 +76,37 @@
             ],
             datasets: [{
                 label: 'Pengujian Sentimen',
-                data: [{{ total_salah }}, {{ total_benar }}],
-        backgroundColor: [
-            'rgb(255, 99, 132)',
-            'rgb(54, 162, 235)'
-        ],
-        hoverOffset: 4
-    }]
+                data: [benar, salah],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)'
+                ],
+                hoverOffset: 4
+            }]
+        }
+    });
+
+
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: [
+                'Salah',
+                'Benar',
+            ],
+            datasets: [{
+                label: 'Pengujian Sentimen',
+                data: [benar, salah],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                ],
+                hoverOffset: 4
+            }]
         }
     });
 </script>
