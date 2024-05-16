@@ -18,6 +18,7 @@ class Berita(Base, db.Model):
     prediksi = Column(String(75))
     hasil = Column(String(10))
     data = Column(Text())
+    isi = Column(Text())
 
 
 pass
@@ -40,6 +41,7 @@ def assign(form):
         judul=form['judul'],
         kategori=form['kategori'],
         hasil=form['hasil'],
+        isi=form['isi'],
         prediksi=form['prediksi'],
         data=form['data'],
     )

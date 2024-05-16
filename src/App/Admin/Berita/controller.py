@@ -71,13 +71,17 @@ def create():
 def store():
     kategori = request.form.get('kategori')
     judul = request.form.get('judul')
-    if kategori is None or judul is None:
+    isi = request.form.get('isi')
+    if kategori is None or judul is None or isi is None:
         flash('Gagal', 'danger')
         return redirect(url_for(f'{module}.create'))
-    predict = app_sentiment.singlePredict(judul, kategori)
+
+    predict = app_sentiment.singlePredict(judul, isi, kategori)
     print(predict)
+
     form = {}
     form['judul'] = judul
+    form['isi'] = isi
     form['kategori'] = kategori
     form['prediksi'] = predict['Prediksi']
     form['hasil'] = 'True' if predict['Hasil'] == True else 'False'

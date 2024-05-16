@@ -160,6 +160,19 @@ class Sentiment():
 
             for row in csv_reader:
 
+                filtering_teks = self.bersihkanDataset(row['Isi'])
+                remove_stopword_teks = self.sastrawiStopword.remove(
+                    filtering_teks)
+                tokens = nltk.tokenize.word_tokenize(remove_stopword_teks)
+                clean = [kata for kata in tokens if kata not in self.stopwords]
+                kalimat = ' '.join(clean)
+                stem_teks = self.stemmer.stem(kalimat)
+
+                new_text_tfidf = self.tfidf.transform([stem_teks])
+                predicted_category_isi = self.classifier.predict(
+                    new_text_tfidf
+                )[0]
+
                 filtering_teks = self.bersihkanDataset(row['Judul'])
                 remove_stopword_teks = self.sastrawiStopword.remove(
                     filtering_teks)
@@ -172,6 +185,9 @@ class Sentiment():
                 predicted_category = self.classifier.predict(
                     new_text_tfidf
                 )[0]
+
+                if predicted_category_isi != predicted_category:
+                    predicted_category = predicted_category_isi
 
                 mydict.append({
                     'Kategori': row['Kategori'],
@@ -204,7 +220,19 @@ class Sentiment():
         }
     pass
 
-    def singlePredict(self, judul, Kategori):
+    def singlePredict(self, judul, isi, Kategori):
+        filtering_teks = self.bersihkanDataset(isi)
+        remove_stopword_teks = self.sastrawiStopword.remove(
+            filtering_teks)
+        tokens = nltk.tokenize.word_tokenize(remove_stopword_teks)
+        clean = [kata for kata in tokens if kata not in self.stopwords]
+        kalimat = ' '.join(clean)
+        stem_teks = self.stemmer.stem(kalimat)
+        new_text_tfidf = self.tfidf.transform([stem_teks])
+        predicted_category_isi = self.classifier.predict(
+            new_text_tfidf
+        )[0]
+
         filtering_teks = self.bersihkanDataset(judul)
         remove_stopword_teks = self.sastrawiStopword.remove(
             filtering_teks)
@@ -217,9 +245,13 @@ class Sentiment():
             new_text_tfidf
         )[0]
 
+        if predicted_category_isi != predicted_category:
+            predicted_category = predicted_category_isi
+
         return {
             'Kategori': Kategori,
             'Judul': judul,
+            'Isi': isi,
             'Casefolding': judul.lower(),
             'Filtering': filtering_teks,
             'Hapus StopWord': remove_stopword_teks,
