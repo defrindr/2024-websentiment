@@ -19,7 +19,8 @@ ALLOWED_EXTENSIONS = {'csv'}
 def index():
     title = "Klasifikasi"
 
-    headers = ['No', 'Nama', 'Akurasi', 'Total Data', 'Total Benar', 'Aksi']
+    headers = ['No', 'Nama', 'Akurasi', 'Total Data',
+               'Total Benar', 'Total Salah', 'Aksi']
 
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)

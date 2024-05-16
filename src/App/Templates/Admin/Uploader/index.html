@@ -75,6 +75,7 @@
               <td> {{ row.accuracy }} </td>
               <td> {{ row.total_data }} </td>
               <td> {{ row.total_benar }} </td>
+              <td> {{ row.total_data - row.total_benar }} </td>
               <td>
                 <button class="mr-1 mb-1 btn btn-sm btn-warning btn-open-modal" data-url="{{row.getPathFile()}}"
                   data-title="Sumber untuk {{row.nama}}">
