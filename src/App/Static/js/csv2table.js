@@ -5,6 +5,22 @@
  * @since 2024
  * Converter CSV to Table HTML
  */
+
+function expand(event) {
+  let el = event.target;
+  let expand = el.getAttribute("data-expand");
+  let rawText = el.getAttribute("data-text");
+
+  if (expand == 1) {
+    let contentTd = rawText.substring(0, 250) + "...";
+    el.innerHTML = contentTd;
+    el.setAttribute('data-expand', 0)
+  } else {
+    el.innerHTML = rawText;
+    el.setAttribute('data-expand', 1)
+  }
+}
+
 class Csv2Table {
   _elementId = null;
   _source = null;
@@ -126,9 +142,15 @@ class Csv2Table {
 
       for (let columnIndex = 0; columnIndex < source.length; columnIndex++) {
         let contentTd = source[columnIndex];
-        if (contentTd.length > 250)
+        if (contentTd.length > 250) {
+          let rawTd = source[columnIndex];
           contentTd = contentTd.substring(0, 250) + "...";
-        columns.push(`<td>${contentTd}</td>`);
+          columns.push(
+            `<td onclick='expand(event)' data-text="${rawTd}" data-expand='0'>${contentTd}</td>`
+          );
+        } else {
+          columns.push(`<td >${contentTd}</td>`);
+        }
       }
 
       rows.push(`<tr>${columns.join("")}</tr>`);
