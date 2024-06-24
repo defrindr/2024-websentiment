@@ -2,6 +2,8 @@ from flask import render_template, request, flash, redirect, url_for, send_from_
 from App.Auth.auth_session import loggedInUser
 from App.Core.database import db
 import App.Models.Uploader as UploaderInstance
+from App.Models.Uploader import Uploader
+from App.Auth.auth_session import SESS_AUTH_ID, getSessionAuth
 from sqlalchemy import or_
 from flask import current_app as app
 from App.Utils.Validator import Validator
@@ -26,7 +28,12 @@ def index():
     per_page = request.args.get('per_page', 20, type=int)
     search = request.args.get('search', '', type=str)
 
+    session = getSessionAuth()
+    userId = session[SESS_AUTH_ID]
+
     baseQuery = UploaderInstance.ActiveQuery()
+    if userId != 1:
+        baseQuery = baseQuery.where(Berita.user_id == userId)
 
     if search != '':
         baseQuery = baseQuery.filter(
@@ -115,6 +122,9 @@ def store():
     form['total_data'] = predict['total_data']
     form['total_benar'] = predict['total_benar']
     form['file_result'] = predict['result_file']
+
+    session = getSessionAuth()
+    form['user_id'] = session[SESS_AUTH_ID]
 
     app_validator = Validator()
     app_validator.required(form, required_fields)

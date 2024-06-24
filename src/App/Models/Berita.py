@@ -19,7 +19,10 @@ class Berita(Base, db.Model):
     hasil = Column(String(10))
     data = Column(Text())
     isi = Column(Text())
+    user_id = Column(Integer, ForeignKey("users.id"))
 
+    # Many-to-one relationship with User
+    user = db.relationship('User', back_populates='beritas')
 
 pass
 
@@ -44,4 +47,5 @@ def assign(form):
         isi=form['isi'],
         prediksi=form['prediksi'],
         data=form['data'],
+        user_id=form['user_id'],
     )

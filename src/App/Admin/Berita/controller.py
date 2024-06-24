@@ -1,7 +1,9 @@
 from flask import render_template, request, flash, redirect, url_for, send_from_directory
 from App.Auth.auth_session import loggedInUser
+from App.Auth.auth_session import SESS_AUTH_ID, getSessionAuth
 from App.Core.database import db
 import App.Models.Berita as BeritaInstance
+from App.Models.Berita import Berita
 from sqlalchemy import or_
 from flask import current_app as app
 from App.Utils.Validator import Validator
@@ -27,7 +29,12 @@ def index():
     per_page = request.args.get('per_page', 20, type=int)
     search = request.args.get('search', '', type=str)
 
+    session = getSessionAuth()
+    userId = session[SESS_AUTH_ID]
+
     baseQuery = BeritaInstance.ActiveQuery()
+    if userId != 1:
+        baseQuery = baseQuery.where(Berita.user_id == userId)
 
     if search != '':
         baseQuery = baseQuery.filter(
@@ -79,10 +86,13 @@ def store():
     predict = app_sentiment.singlePredict(judul, isi, kategori)
     print(predict)
 
+    session = getSessionAuth()
+
     form = {}
     form['judul'] = judul
     form['isi'] = isi
     form['kategori'] = kategori
+    form['user_id'] = session[SESS_AUTH_ID]
     form['prediksi'] = predict['Prediksi']
     form['hasil'] = 'True' if predict['Hasil'] == True else 'False'
     form['data'] = json.dumps(predict)

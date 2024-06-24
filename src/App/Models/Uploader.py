@@ -19,6 +19,10 @@ class Uploader(Base, db.Model):
     total_data = Column(Integer, nullable=True)
     total_benar = Column(Integer, nullable=True)
     file_result = Column(String(255), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    # Many-to-one relationship with User
+    user = db.relationship('User', back_populates='uploaders')
 
     def getPathFile(self):
         return url_for("static", filename="uploads/source/" + self.file, _external=True)
@@ -53,6 +57,7 @@ def assign(form):
         total_data=form['total_data'],
         total_benar=form['total_benar'],
         file_result=form['file_result'],
+        user_id=form['user_id'],
     )
 
 

@@ -21,3 +21,12 @@ CREATE TABLE `berita` (
 
 
 -- 2024-05-15 16:09:02
+
+
+ALTER TABLE `berita`
+ADD `user_id` int NOT NULL DEFAULT '1',
+ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+ALTER TABLE `uploaders`
+ADD `user_id` int NULL,
+ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
