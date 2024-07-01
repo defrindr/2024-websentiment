@@ -17,6 +17,9 @@
         <a href="{{url_for(module + '.create')}}" class="btn btn-primary mb-2">
           <i class="mdi mdi-plus"></i> Tambah
         </a>
+        <a href="{{url_for(module + '.exportCsv')}}" class="btn btn-warning mb-2">
+          <i class="mdi mdi-export"></i> Export CSV
+        </a>
       </div>
       <div class="card-body">
         <form action="{{url_for(module + '.index')}}" class="form">
@@ -138,11 +141,12 @@
         </button>
       </div>
       <div class="modal-body">
-        <div id="cvsTable"></div>
+        <div class="table-responsive">
+          <div id="cvsTable"></div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>

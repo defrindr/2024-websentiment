@@ -1,4 +1,4 @@
-from flask import render_template, request, flash, redirect, url_for, send_from_directory
+from flask import render_template, request, flash, redirect, url_for, send_from_directory, send_file
 from App.Auth.auth_session import loggedInUser
 from App.Auth.auth_session import SESS_AUTH_ID, getSessionAuth
 from App.Core.database import db
@@ -12,6 +12,9 @@ from werkzeug.utils import secure_filename
 import time
 import json
 from App.Core.sentiment import app_sentiment
+import csv
+import tempfile
+
 
 module = "admin.berita"
 viewLayout = 'Admin/Berita/'
@@ -145,3 +148,25 @@ def destroy(id):
     flash('Data berhasil dihapus', 'info')
     return redirect(url_for(f'{module}.index'))
     pass
+
+
+def exportCsv():
+    tmp = tempfile.NamedTemporaryFile()
+    outfile = open(tmp.name, 'w')
+    outcsv = csv.writer(outfile)
+    session = db.session
+    records = session.query(Berita).all()
+    row = []
+    # for column in Berita.__mapper__.columns:
+    #     row.append(column.name)
+    header = ['Kategori', 'Judul', 'Casefolding', 'Filtering', 'Hapus StopWord', 'Tokenisasi', 'Stem', 'Prediksi', 'Isi',
+              'Casefolding (Isi)', 'Filtering (Isi)', 'HapusStopWord (Isi)', 'Tokenisasi (Isi)', 'Stem (Isi)', 'Prediksi (Isi)', 'Hasil']
+    outcsv.writerow(header)
+
+    for curr in records:
+        model = json.loads(getattr(curr, 'data'))
+        outcsv.writerow(model.values())
+
+    outfile.close()
+
+    return send_file(tmp.name, mimetype='text/csv')
