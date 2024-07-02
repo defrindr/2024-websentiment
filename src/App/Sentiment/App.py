@@ -109,9 +109,7 @@ class Sentiment():
         file_stopword.close()
 
     def bersihkanDataset(self, teks):
-        # casefolding
         teks = teks\
-            .lower()\
             .replace('\\t', " ")\
             .replace('\\n', " ")\
             .replace('\\', "")
@@ -251,19 +249,19 @@ class Sentiment():
         return {
             'Kategori': Kategori,
             'Judul': judul,
-            'Casefolding': judul.lower(),
-            'Tokenisasi': ','.join(tokens),
-            'Hapus StopWord': remove_stopword_teks,
-            'Filtering': filtering_teks,
-            'Stem': stem_teks,
+            'Cleaning': filtering_teks,
+            'Casefolding': filtering_teks.lower(),
+            'Tokenizing': ','.join(tokens),
+            'Removal Stopword': remove_stopword_teks,
+            'Stemming': stem_teks,
             'Tf Idf': str(new_text_tfidf),
             'Prediksi': predicted_category,
             'Isi': isi,
-            'Casefolding (Isi)': isi.lower(),
-            'Tokenisasi (Isi)': ','.join(tokens_isi),
-            'HapusStopWord (Isi)': remove_stopword_teks_isi,
-            'Filtering (Isi)': filtering_teks_isi,
-            'Stem (Isi)': stem_teks_isi,
+            'Cleaning (Isi)': filtering_teks_isi,
+            'Casefolding (Isi)': filtering_teks_isi.lower(),
+            'Tokenizing (Isi)': ','.join(tokens_isi),
+            'Removal Stopword (Isi)': remove_stopword_teks_isi,
+            'Stemming (Isi)': stem_teks_isi,
             'Tf Idf (Isi)': str(new_text_tfidf_isi),
             'Prediksi (Isi)': predicted_category_isi,
             'Hasil': predicted_category == Kategori,
