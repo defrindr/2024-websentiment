@@ -220,10 +220,12 @@ class Sentiment():
 
     def singlePredict(self, judul, isi, Kategori):
         filtering_teks_isi = self.bersihkanDataset(isi)
-        tokens_isi = nltk.tokenize.word_tokenize(filtering_teks_isi)
+        case_folding_isi = filtering_teks_isi.lower()
+        tokens_isi = nltk.tokenize.word_tokenize(case_folding_isi)
         remove_stopword_teks_isi = self.sastrawiStopword.remove(
             ' '.join(tokens_isi))
-        clean_isi = [kata for kata in remove_stopword_teks_isi.split(' ') if kata not in self.stopwords]
+        clean_isi = [kata for kata in remove_stopword_teks_isi.split(
+            ' ') if kata not in self.stopwords]
         kalimat_isi = ' '.join(clean_isi)
         stem_teks_isi = self.stemmer.stem(kalimat_isi)
         new_text_tfidf_isi = self.tfidf.transform([stem_teks_isi])
@@ -232,10 +234,12 @@ class Sentiment():
         )[0]
 
         filtering_teks = self.bersihkanDataset(judul)
-        tokens = nltk.tokenize.word_tokenize(filtering_teks)
+        case_folding = filtering_teks.lower()
+        tokens = nltk.tokenize.word_tokenize(case_folding)
         remove_stopword_teks = self.sastrawiStopword.remove(
             ' '.join(tokens))
-        clean = [kata for kata in remove_stopword_teks.split(' ') if kata not in self.stopwords]
+        clean = [kata for kata in remove_stopword_teks.split(
+            ' ') if kata not in self.stopwords]
         kalimat = ' '.join(clean)
         stem_teks = self.stemmer.stem(kalimat)
         new_text_tfidf = self.tfidf.transform([stem_teks])
@@ -250,7 +254,7 @@ class Sentiment():
             'Kategori': Kategori,
             'Judul': judul,
             'Cleaning': filtering_teks,
-            'Casefolding': filtering_teks.lower(),
+            'Casefolding': case_folding,
             'Tokenizing': ','.join(tokens),
             'Removal Stopword': remove_stopword_teks,
             'Stemming': stem_teks,
